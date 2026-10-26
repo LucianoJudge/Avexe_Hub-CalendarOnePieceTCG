@@ -220,7 +220,7 @@
                 <div class="w-20 h-20 bg-gold-500/20 rounded-full border-2 border-gold-500 flex items-center justify-center mx-auto text-gold-400 text-4xl shadow-inner">
                     <i class="fa-solid fa-coins"></i>
                 </div>
-                <h2 class="text-2xl sm:text-4xl font-black font-cinzel text-gold-400">Bounty Store & Promos(EM BREVE!!)</h2>
+                <h2 class="text-2xl sm:text-4xl font-black font-cinzel text-gold-400">Bounty Store & Promos (EM BREVE!!)</h2>
                 <p class="text-gray-200 max-w-xl mx-auto text-xs sm:text-sm font-medium leading-relaxed">
                     Acumule pontos participando dos torneios locais e troque por cartas Promos exclusivas!
                 </p>
@@ -286,7 +286,7 @@
                 <div id="admin-subtab-players" class="space-y-4">
                     <div>
                         <label class="block text-xs font-bold text-gold-400 uppercase mb-2">Selecione o Evento:</label>
-                        <select id="admin-event-select" onchange="loadAdminRegistrations()" class="w-full bg-slate-900 border border-gold-500/50 rounded-xl p-3 text-gray-100 text-xs sm:text-sm focus:border-gold-500 focus:outline-none">
+                        <select id="admin-event-select" onchange="loadAdminRegistrations()" class="w-full bg-slate-950 border border-gold-500/50 rounded-xl p-3 text-gray-100 text-xs sm:text-sm focus:border-gold-500 focus:outline-none">
                             <!-- Dynamically Loaded -->
                         </select>
                     </div>
@@ -615,7 +615,9 @@
 
     <!-- SCRIPT LOGIC -->
     <script>
-        const ADMIN_HASH = "b08492f2fc71fe89498064b63300bc8f1585ee58330026e6d5bfab588a44d8c7";
+        // URL da sua implantação Web no Google Apps Script (terminada em /exec)
+        const GOOGLE_SHEETS_URL = "COLE_AQUI_A_SUA_URL_DO_APPS_SCRIPT_QUE_TERMINA_EM_EXEC";
+
         const fallbackSVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='1.5'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>";
 
         const initialEvents = [
@@ -666,15 +668,7 @@
             localStorage.setItem('op_events_data_v3', JSON.stringify(events));
         }
 
-        /* --- AUTH DO JUIZ (SHA-256) --- */
-        async function sha256(text) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(text);
-            const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
+        /* --- AUTH DO JUIZ SEGURA VIA GOOGLE APPS SCRIPT --- */
         function requestAdminAccess() {
             if (sessionStorage.getItem('op_admin_authenticated') === 'true') {
                 toggleAdminPanel(true);
@@ -691,17 +685,48 @@
 
         async function handleAdminLogin(e) {
             e.preventDefault();
-            const inputPass = document.getElementById('admin-password-input').value;
-            const hash = await sha256(inputPass);
+            const inputPass = document.getElementById('admin-password-input').value.trim();
+            const errEl = document.getElementById('admin-auth-error');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
 
-            if (hash === ADMIN_HASH) {
-                sessionStorage.setItem('op_admin_authenticated', 'true');
-                closeAdminAuthModal();
-                toggleAdminPanel(true);
-            } else {
-                const err = document.getElementById('admin-auth-error');
-                err.innerText = "Senha incorreta. Acesso negado!";
-                err.classList.remove('hidden');
+            const activeSheetsUrl = localStorage.getItem('op_sheets_url') || GOOGLE_SHEETS_URL;
+
+            if (!activeSheetsUrl || activeSheetsUrl.includes("COLE_AQUI")) {
+                errEl.innerText = "Configure a URL do Google Sheets no código ou no painel!";
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Validando...";
+            errEl.classList.add('hidden');
+
+            try {
+                const response = await fetch(activeSheetsUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: "admin_login",
+                        password: inputPass
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.auth === true) {
+                    sessionStorage.setItem('op_admin_authenticated', 'true');
+                    closeAdminAuthModal();
+                    toggleAdminPanel(true);
+                } else {
+                    errEl.innerText = "Senha incorreta. Acesso negado!";
+                    errEl.classList.remove('hidden');
+                }
+            } catch (error) {
+                errEl.innerText = "Erro ao validar com os servidores do Google. Tente novamente.";
+                errEl.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Entrar";
             }
         }
 
@@ -1181,7 +1206,7 @@
         }
 
         function openGoogleSheetConfig() {
-            document.getElementById('sheets-url-input').value = localStorage.getItem('op_sheets_url') || '';
+            document.getElementById('sheets-url-input').value = localStorage.getItem('op_sheets_url') || GOOGLE_SHEETS_URL;
             document.getElementById('sheets-modal').classList.remove('hidden');
         }
 
@@ -1310,11 +1335,11 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Enviando inscrição...`;
 
-            // Envio para Google Sheets se houver URL configurada
-            const sheetsUrl = localStorage.getItem('op_sheets_url');
-            if (sheetsUrl) {
+            // Envio para Google Sheets
+            const activeSheetsUrl = localStorage.getItem('op_sheets_url') || GOOGLE_SHEETS_URL;
+            if (activeSheetsUrl && !activeSheetsUrl.includes("COLE_AQUI")) {
                 try {
-                    await fetch(sheetsUrl, {
+                    await fetch(activeSheetsUrl, {
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
