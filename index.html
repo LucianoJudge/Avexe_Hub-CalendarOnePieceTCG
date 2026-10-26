@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avexe Hub | One Piece TCG</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            300: '#FFE066',
+                            400: '#FBBF24',
+                            500: '#D4AF37',
+                            600: '#B8860B',
+                            700: '#996515'
+                        },
+                        pirate: {
+                            bg: '#0c0f17',
+                            card: '#0e1420',
+                            cardHover: '#161e2e',
+                            border: '#374151',
+                            goldBorder: '#D4AF37',
+                            accent: '#DC2626'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        cinzel: ['Cinzel', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* GOLDEN PARCHMENT MAP BACKGROUND */
+        body {
+            background-color: #f3ebdb;
+            background-image: url('assets/bg_welcome.webp');
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #1a1a1a;
+        }
+
+        .gold-border-card {
+            border: 2px solid rgba(212, 175, 55, 0.9);
+            box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.85), 0 0 20px rgba(212, 175, 55, 0.3);
+            background-color: rgba(14, 20, 32, 0.96);
+            backdrop-filter: blur(8px);
+            color: #f3f4f6;
+        }
+
+        .gold-border-card:hover {
+            border-color: rgba(253, 224, 102, 1);
+            box-shadow: 0 16px 40px -5px rgba(0, 0, 0, 0.95), 0 0 30px rgba(212, 175, 55, 0.45);
+        }
+
+        .parallel-rare-effect {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .parallel-rare-effect::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                60deg,
+                transparent 30%,
+                rgba(212, 175, 55, 0.2) 40%,
+                rgba(255, 255, 255, 0.3) 50%,
+                rgba(212, 175, 55, 0.2) 60%,
+                transparent 70%
+            );
+            transform: rotate(30deg);
+            transition: all 0.6s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .parallel-rare-effect:hover::after {
+            opacity: 1;
+            transform: rotate(30deg) translate(20%, 20%);
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans flex flex-col antialiased">
+
+    <!-- NAVBAR -->
+    <nav class="bg-slate-950/95 backdrop-blur-md border-b-2 border-gold-500/90 sticky top-0 z-40 shadow-2xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('calendar')">
+                    <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-gold-700 via-gold-500 to-amber-300 flex items-center justify-center shadow-lg border-2 border-gold-300">
+                        <i class="fa-solid text-xl text-slate-950 fa-compass"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-cinzel text-xl sm:text-2xl font-black text-gold-400 tracking-wider drop-shadow-md">AVEXE HUB</h1>
+                        <p class="text-[10px] sm:text-xs text-amber-200 font-bold tracking-widest uppercase">Avexe e se inscreva Condenado - One Piece TCG </p>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <button id="nav-calendar-btn" onclick="switchTab('calendar')" class="px-4 py-2 rounded-xl text-xs font-black bg-gold-500 text-slate-950 hover:bg-gold-400 transition flex items-center gap-2 shadow-lg">
+                        <i class="fa-solid fa-map-location-dot"></i> <span class="hidden sm:inline">Calendário</span>
+                    </button>
+                    <button id="nav-bounty-btn" onclick="switchTab('bounty')" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-gold-400 border border-gold-500/40 hover:bg-slate-800 transition flex items-center gap-2">
+                        <i class="fa-solid fa-coins"></i> <span class="hidden sm:inline">Bounty Store</span>
+                    </button>
+                    <button id="nav-admin-btn" onclick="requestAdminAccess()" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-600 text-white shadow-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-shield"></i> <span class="hidden md:inline">Painel do Juiz</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- TAB: CALENDÁRIO -->
+        <div id="tab-calendar" class="space-y-10">
+            
+            <!-- HERO COUNTDOWN BANNER -->
+            <div id="hero-countdown-container" class="relative rounded-2xl overflow-hidden gold-border-card">
+                <div id="hero-bg-overlay" class="absolute inset-0 bg-cover bg-center opacity-30"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-transparent"></div>
+                
+                <div class="relative z-10 p-6 sm:p-10 flex flex-col lg:flex-row items-center justify-between gap-8">
+                    <div class="text-center lg:text-left space-y-3 max-w-2xl">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-950/90 border border-red-500 text-red-400 text-[11px] font-black uppercase tracking-widest shadow-md">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span> Próximo Grande Evento
+                        </div>
+                        <h2 id="hero-event-title" class="text-2xl sm:text-4xl font-black font-cinzel text-gold-400 drop-shadow-lg leading-tight">Carregando Evento...</h2>
+                        <p id="hero-event-desc" class="text-gray-200 text-xs sm:text-sm font-medium">Garanta sua vaga para o próximo torneio de One Piece TCG!</p>
+                        <div class="flex flex-wrap items-center justify-center lg:justify-start gap-5 text-xs font-bold text-gold-300 pt-2">
+                            <span><i class="fa-solid fa-location-dot text-gold-400 mr-1.5"></i> <span id="hero-event-shop">---</span></span>
+                            <span><i class="fa-solid fa-calendar-day text-gold-400 mr-1.5"></i> <span id="hero-event-date">---</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Countdown Timer -->
+                    <div class="bg-slate-950/95 p-5 sm:p-7 rounded-2xl border-2 border-gold-500/80 text-center w-full lg:w-auto shadow-2xl backdrop-blur-md">
+                        <p class="text-xs text-gold-400 font-black uppercase tracking-widest mb-4 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-hourglass-half"></i> Contagem Regressiva
+                        </p>
+                        <div class="grid grid-cols-4 gap-2 sm:gap-4 text-center">
+                            <div class="bg-slate-900/90 p-2.5 sm:p-4 rounded-xl border border-gold-500/50">
+                                <span id="cd-days" class="block text-2xl sm:text-4xl font-black text-gold-400 font-mono">00</span>
+                                <span class="text-[10px] text-gray-300 font-bold uppercase tracking-wider">Dias</span>
+                            </div>
+                            <div class="bg-slate-900/90 p-2.5 sm:p-4 rounded-xl border border-gold-500/50">
+                                <span id="cd-hours" class="block text-2xl sm:text-4xl font-black text-gold-400 font-mono">00</span>
+                                <span class="text-[10px] text-gray-300 font-bold uppercase tracking-wider">Horas</span>
+                            </div>
+                            <div class="bg-slate-900/90 p-2.5 sm:p-4 rounded-xl border border-gold-500/50">
+                                <span id="cd-mins" class="block text-2xl sm:text-4xl font-black text-gold-400 font-mono">00</span>
+                                <span class="text-[10px] text-gray-300 font-bold uppercase tracking-wider">Min</span>
+                            </div>
+                            <div class="bg-slate-900/90 p-2.5 sm:p-4 rounded-xl border border-gold-500/50">
+                                <span id="cd-secs" class="block text-2xl sm:text-4xl font-black text-gold-400 font-mono">00</span>
+                                <span class="text-[10px] text-gray-300 font-bold uppercase tracking-wider">Seg</span>
+                            </div>
+                        </div>
+                        <button id="hero-details-btn" class="w-full mt-5 py-3.5 bg-gradient-to-r from-gold-500 via-amber-400 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-xl transition uppercase tracking-widest flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-ticket"></i> Garantir Minha Vaga
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TITLE & CATEGORY LEGEND -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-950/90 p-4.5 rounded-xl border border-gold-500/80 shadow-2xl backdrop-blur-md">
+                <div>
+                    <h3 class="text-2xl sm:text-3xl font-black font-cinzel text-gold-400 flex items-center gap-2 drop-shadow">
+                        <i class="fa-solid fa-scroll text-gold-500"></i> Torneios da Região
+                    </h3>
+                    <p class="text-xs text-amber-200/90 font-bold mt-1">Calendário unificado das lojas locais de One Piece TCG.</p>
+                </div>
+                <!-- Categories Badges -->
+                <div class="flex flex-wrap gap-2 text-xs font-bold">
+                    <span class="px-3.5 py-1.5 rounded-full bg-emerald-950/90 text-emerald-300 border border-emerald-600/70 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-graduation-cap"></i> Learn to Play
+                    </span>
+                    <span class="px-3.5 py-1.5 rounded-full bg-purple-950/90 text-purple-300 border border-purple-600/70 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-box-open"></i> Pre-Release
+                    </span>
+                    <span class="px-3.5 py-1.5 rounded-full bg-amber-950/90 text-gold-400 border border-gold-500 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-crown"></i> BIG EVENT
+                    </span>
+                </div>
+            </div>
+
+            <!-- EVENTS GRID -->
+            <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Dynamically Inserted Cards -->
+            </div>
+        </div>
+
+        <!-- TAB: BOUNTY STORE -->
+        <div id="tab-bounty" class="hidden space-y-6">
+            <div class="gold-border-card rounded-2xl p-8 sm:p-12 text-center space-y-4 shadow-2xl">
+                <div class="w-20 h-20 bg-gold-500/20 rounded-full border-2 border-gold-500 flex items-center justify-center mx-auto text-gold-400 text-4xl shadow-inner">
+                    <i class="fa-solid fa-coins"></i>
+                </div>
+                <h2 class="text-2xl sm:text-4xl font-black font-cinzel text-gold-400">Bounty Store & Promos(EM BREVE!!)</h2>
+                <p class="text-gray-200 max-w-xl mx-auto text-xs sm:text-sm font-medium leading-relaxed">
+                    Acumule pontos participando dos torneios locais e troque por cartas Promos exclusivas!
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- JUDGE PASSWORD AUTH MODAL -->
+    <div id="admin-auth-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 text-gray-100">
+        <div class="bg-slate-900 border-2 border-gold-500/80 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 mx-auto rounded-full bg-gold-500/20 border border-gold-500 flex items-center justify-center text-gold-400 text-xl">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h3 class="font-cinzel text-lg font-bold text-gold-400">Acesso Restrito ao Juiz</h3>
+                <p class="text-xs text-gray-300">Digite a senha de administrador regional para acessar o gerenciador.</p>
+            </div>
+
+            <form onsubmit="handleAdminLogin(event)" class="space-y-3">
+                <input type="password" id="admin-password-input" required placeholder="Senha de Acesso" class="w-full bg-slate-950 border border-gold-500/40 rounded-lg p-2.5 text-xs text-gray-100 focus:border-gold-500 focus:outline-none">
+                <p id="admin-auth-error" class="text-red-400 text-[11px] hidden font-semibold text-center"></p>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeAdminAuthModal()" class="px-3.5 py-2 bg-slate-800 text-gray-300 text-xs font-bold rounded-xl">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-gold-500 hover:bg-gold-400 text-slate-950 text-xs font-black rounded-xl shadow">Entrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JUDGE ADMIN PANEL MODAL -->
+    <div id="admin-panel" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+        <div class="bg-slate-950 border-2 border-gold-500/80 rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden text-gray-100">
+            <!-- Header -->
+            <div class="p-4 bg-slate-900 border-b border-gold-500/40 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-user-shield text-gold-400 text-xl"></i>
+                    <h3 class="font-cinzel text-base sm:text-lg font-bold text-gold-400">Painel do Juiz - Gerenciador Regional</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="adminLogout()" class="px-2.5 py-1 bg-red-950 hover:bg-red-900 border border-red-700/60 rounded-lg text-red-300 text-xs font-bold flex items-center gap-1" title="Encerrar Sessão">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+                    </button>
+                    <button onclick="toggleAdminPanel(false)" class="text-gray-400 hover:text-white p-1">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-6 bg-slate-950">
+                <!-- Tabs -->
+                <div class="flex gap-2 border-b border-gray-800 pb-3">
+                    <button id="admin-tab-players-btn" onclick="switchAdminTab('players')" class="px-4 py-2 bg-gold-500 text-slate-950 text-xs font-black rounded-xl shadow">
+                        <i class="fa-solid fa-users mr-1"></i> Inscritos
+                    </button>
+                    <button id="admin-tab-events-btn" onclick="switchAdminTab('events')" class="px-4 py-2 bg-slate-900 text-gray-300 hover:text-white text-xs font-bold rounded-xl border border-gray-800">
+                        <i class="fa-solid fa-plus-circle mr-1"></i> Criar / Editar Eventos
+                    </button>
+                </div>
+
+                <!-- SUB-TAB 1: MANAGING REGISTRATIONS -->
+                <div id="admin-subtab-players" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gold-400 uppercase mb-2">Selecione o Evento:</label>
+                        <select id="admin-event-select" onchange="loadAdminRegistrations()" class="w-full bg-slate-900 border border-gold-500/50 rounded-xl p-3 text-gray-100 text-xs sm:text-sm focus:border-gold-500 focus:outline-none">
+                            <!-- Dynamically Loaded -->
+                        </select>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-900 p-4 rounded-xl border border-gold-500/40">
+                        <div>
+                            <p class="text-xs text-gray-400 font-bold">Total Inscritos:</p>
+                            <p id="admin-registered-count" class="text-2xl font-black text-gold-400 font-mono">0 / 0</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="exportRegistrationsTXT()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-gray-100 text-xs font-bold rounded-xl border border-gray-700 flex items-center gap-1.5 shadow">
+                                <i class="fa-solid fa-file-arrow-down text-emerald-400"></i> Exportar Lista (.TXT)
+                            </button>
+                            <button onclick="openGoogleSheetConfig()" class="px-3.5 py-2 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 text-xs font-bold rounded-xl border border-emerald-800/60 flex items-center gap-1.5 shadow">
+                                <i class="fa-solid fa-file-excel"></i> Configurar Google Sheets
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Lista de Jogadores Inscritos</h4>
+                        <div class="border border-gray-800 rounded-xl overflow-hidden bg-slate-900">
+                            <div class="max-h-60 overflow-y-auto divide-y divide-gray-800" id="admin-players-list">
+                                <!-- Dynamic Player Rows -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB 2: EVENT FORM (CREATE / EDIT) -->
+                <div id="admin-subtab-events" class="hidden space-y-5">
+                    
+                    <div class="bg-slate-900 p-4 rounded-xl border border-gold-500/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div class="w-full sm:w-auto flex-1">
+                            <label class="block text-xs font-bold text-gold-400 uppercase mb-1">Selecione para Editar ou Criar Novo:</label>
+                            <select id="edit-event-select" onchange="onSelectEventToEdit()" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-xs text-gray-100 focus:border-gold-500 focus:outline-none">
+                                <option value="NEW">-- Criar Um Novo Evento --</option>
+                            </select>
+                        </div>
+                        <button type="button" id="delete-event-btn" onclick="handleDeleteCurrentEvent()" class="hidden w-full sm:w-auto px-4 py-2.5 bg-red-950 hover:bg-red-900 text-red-300 border border-red-700/60 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-trash-can"></i> Excluir Evento Totalmente
+                        </button>
+                    </div>
+
+                    <form onsubmit="handleSaveEvent(event)" class="space-y-4 bg-slate-900/90 p-4 sm:p-5 rounded-xl border border-gray-800">
+                        <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                            <h4 class="text-xs font-bold text-gold-400 uppercase tracking-wider" id="event-form-title">Cadastrar Novo Evento</h4>
+                            <button type="button" onclick="resetEventForm()" class="text-xs text-gray-400 hover:text-gold-400">Limpar Formulário</button>
+                        </div>
+
+                        <input type="hidden" id="edit-event-id" value="">
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                            <div class="sm:col-span-2">
+                                <label class="block text-gray-300 font-bold mb-1">Título do Evento *</label>
+                                <input type="text" id="form-ev-title" required placeholder="Ex: Pre-Release OP-09 The New Emperor" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Categoria *</label>
+                                <select id="form-ev-category" required class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                                    <option value="learn-to-play">Learn to Play</option>
+                                    <option value="pre-release">Pre-Release</option>
+                                    <option value="big-event">BIG EVENT (Banner Principal)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Total de Vagas *</label>
+                                <input type="number" id="form-ev-slots" required min="4" max="256" value="32" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Loja Hospedeira *</label>
+                                <input type="text" id="form-ev-shop" required placeholder="Ex: Gamer's Realm" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Link de Informações da Loja *</label>
+                                <input type="url" id="form-ev-shoplink" required placeholder="https://maps.google.com/..." class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Data Exibida *</label>
+                                <input type="text" id="form-ev-date" required placeholder="Ex: 15 de Novembro, 2026" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Data/Hora para Contagem Regressiva *</label>
+                                <input type="datetime-local" id="form-ev-dateiso" required class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Horário Check-in *</label>
+                                <input type="text" id="form-ev-checkin" required placeholder="Ex: 13:30" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Horário Início 1ª Rodada *</label>
+                                <input type="text" id="form-ev-start" required placeholder="Ex: 14:15" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Valor da Inscrição *</label>
+                                <input type="text" id="form-ev-price" required placeholder="Ex: R$ 80,00" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Observação do Valor (Opcional)</label>
+                                <input type="text" id="form-ev-pricenote" placeholder="Ex: Pode dividir em 2x sem juros" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Formato do Torneio *</label>
+                                <input type="text" id="form-ev-format" required placeholder="Ex: Constructed OP-08" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Link Explicativo do Formato/Regras</label>
+                                <input type="url" id="form-ev-formatlink" placeholder="https://en.onepiece-cardgame.com/rules/" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label class="block text-gray-300 font-bold mb-1">URL Imagem do Banner do Evento *</label>
+                                <input type="url" id="form-ev-banner" required placeholder="https://images.unsplash.com/..." class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Juiz Responsável *</label>
+                                <input type="text" id="form-ev-judgename" required placeholder="Ex: Juiz Oficial Bruno" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 font-bold mb-1">Avisos/Observações do Juiz</label>
+                                <input type="text" id="form-ev-judgenotes" placeholder="Ex: Envio de Decklist obrigatório" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-2.5 text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- NESTED PRIZES SECTION (TOP CUT & MULTI-ITEMS) -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-gray-800 space-y-4">
+                            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                                <span class="text-gold-400 font-bold text-xs uppercase"><i class="fa-solid fa-award mr-1"></i> Premiações do Evento (Top Cut)</span>
+                                <button type="button" onclick="addPrizeTierGroup()" class="px-3 py-1 bg-gold-500 hover:bg-gold-400 text-slate-950 font-bold text-xs rounded transition">
+                                    + Adicionar Categoria/Tier (Ex: 1º Lugar, Top 4)
+                                </button>
+                            </div>
+                            <div id="prize-tiers-container" class="space-y-4">
+                                <!-- Dynamic Tier Groups -->
+                            </div>
+                        </div>
+
+                        <!-- DYNAMIC RAFFLES SECTION -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-gray-800 space-y-3">
+                            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                                <span class="text-purple-400 font-bold text-xs uppercase"><i class="fa-solid fa-gift mr-1"></i> Sorteios do Evento (Raffles)</span>
+                                <button type="button" onclick="addRaffleInputRow()" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white font-bold text-[11px] rounded transition">
+                                    + Adicionar Item de Sorteio
+                                </button>
+                            </div>
+                            <div id="raffles-input-container" class="space-y-3">
+                                <!-- Dynamic Rows -->
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-2">
+                            <button type="submit" class="px-6 py-2.5 bg-gold-500 hover:bg-gold-400 text-slate-950 font-black rounded-xl uppercase tracking-wider text-xs shadow-lg">
+                                Salvar / Atualizar Evento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GOOGLE SHEETS MODAL -->
+    <div id="sheets-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 text-gray-100">
+        <div class="bg-slate-900 border-2 border-emerald-500/70 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl">
+            <h3 class="font-cinzel text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <i class="fa-solid fa-file-excel"></i> Conectar com Google Sheets
+            </h3>
+            <p class="text-xs text-gray-300 leading-relaxed">
+                Cole a URL do seu <strong>Google Apps Script Web App</strong> para salvar as inscrições em tempo real na planilha:
+            </p>
+            <input type="text" id="sheets-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-gray-800 rounded-lg p-3 text-xs text-gray-100 focus:border-emerald-500 focus:outline-none font-mono">
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeSheetsModal()" class="px-4 py-2 bg-slate-800 text-gray-300 text-xs font-bold rounded-xl">Cancelar</button>
+                <button onclick="saveSheetsURL()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-xs font-bold rounded-xl">Salvar URL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PUBLIC EVENT DETAILS & REGISTRATION MODAL -->
+    <div id="event-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto text-gray-100">
+        <div class="bg-slate-900 border-2 border-gold-500/80 rounded-2xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+            
+            <!-- Modal Header Banner -->
+            <div class="relative h-48 sm:h-56 bg-slate-950 flex-shrink-0">
+                <img id="modal-banner" src="" alt="Banner do Evento" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/800x400/0b0f17/D4AF37?text=One+Piece+TCG'">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
+                <button onclick="closeEventModal()" class="absolute top-4 right-4 bg-slate-950/80 text-gray-300 hover:text-white w-9 h-9 rounded-full flex items-center justify-center border border-gray-700 backdrop-blur-sm">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+                <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-2">
+                    <div>
+                        <span id="modal-badge" class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider mb-1">---</span>
+                        <h2 id="modal-title" class="font-cinzel text-xl sm:text-2xl font-black text-gold-400 drop-shadow-md">---</h2>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <span class="text-[10px] text-gray-400 uppercase font-bold block">Vagas Restantes</span>
+                        <span id="modal-slots" class="text-lg sm:text-2xl font-black text-emerald-400 font-mono">0 / 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Content Body -->
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-6">
+                
+                <!-- Details Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div class="bg-slate-950/90 p-3 rounded-xl border border-gold-500/40 space-y-1">
+                        <span class="text-gold-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock"></i> Horários & Data
+                        </span>
+                        <p class="text-gray-100 font-semibold" id="modal-date">---</p>
+                        <p class="text-gray-300"><i class="fa-solid fa-user-check mr-1 text-gold-400"></i> Check-in: <span id="modal-checkin" class="text-gray-100 font-mono font-bold">---</span></p>
+                        <p class="text-gray-300"><i class="fa-solid fa-play mr-1 text-gold-400"></i> Início Rodada 1: <span id="modal-start" class="text-gray-100 font-mono font-bold">---</span></p>
+                    </div>
+
+                    <div class="bg-slate-950/90 p-3 rounded-xl border border-gold-500/40 space-y-1">
+                        <span class="text-gold-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-store"></i> Loja Hospedeira
+                        </span>
+                        <p class="text-gray-100 font-semibold text-sm" id="modal-shop-name">---</p>
+                        <a id="modal-shop-link" href="#" target="_blank" class="inline-flex items-center gap-1 text-xs text-gold-400 hover:underline pt-1 font-bold">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver Informações da Loja
+                        </a>
+                    </div>
+
+                    <div class="bg-slate-950/90 p-3 rounded-xl border border-gold-500/40 space-y-1">
+                        <span class="text-gold-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-ticket"></i> Valor da Inscrição
+                        </span>
+                        <p class="text-emerald-400 font-bold text-base" id="modal-price">---</p>
+                        <p class="text-gray-300 text-[11px]" id="modal-price-note">---</p>
+                    </div>
+
+                    <div class="bg-slate-950/90 p-3 rounded-xl border border-gold-500/40 space-y-1">
+                        <span class="text-gold-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-scroll"></i> Formato
+                        </span>
+                        <p class="text-gray-100 font-semibold" id="modal-format">---</p>
+                        <a id="modal-format-link" href="#" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-gold-400 hover:underline pt-0.5">
+                            <i class="fa-solid fa-circle-info"></i> Ver Regras do Formato
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Judge Section -->
+                <div class="bg-amber-950/40 border border-gold-500/60 p-3.5 rounded-xl space-y-1">
+                    <div class="flex items-center gap-2 text-xs font-bold text-gold-400 uppercase">
+                        <i class="fa-solid fa-gavel"></i> Juiz Responsável: <span id="modal-judge-name" class="text-gray-100">---</span>
+                    </div>
+                    <p id="modal-judge-notes" class="text-xs text-gray-200 italic">---</p>
+                </div>
+
+                <!-- Nested Prizes Section -->
+                <div class="space-y-4">
+                    <h3 class="text-xs font-bold text-gold-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-award"></i> Premiação Oficial (Top Cut)
+                    </h3>
+                    <div id="modal-prizes-list" class="space-y-4">
+                        <!-- Dynamic Multi-Item Prize Tiers -->
+                    </div>
+                </div>
+
+                <!-- Raffles Section -->
+                <div id="modal-raffles-wrapper" class="space-y-3 hidden">
+                    <h3 class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-gift"></i> Sorteios do Torneio
+                    </h3>
+                    <div id="modal-raffles-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Dynamic Raffle Cards -->
+                    </div>
+                </div>
+
+                <!-- REGISTRATION FORM -->
+                <div class="border-t border-gray-800 pt-6 space-y-4">
+                    <h3 class="text-base font-bold font-cinzel text-gold-400 flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square"></i> Inscrição de Jogador
+                    </h3>
+
+                    <form id="reg-form" onsubmit="handleRegistration(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 mb-1">Nome e Sobrenome *</label>
+                                <input type="text" id="reg-name" required placeholder="Ex: Monkey D. Luffy" class="w-full bg-slate-950 border border-gold-500/40 rounded-lg p-2.5 text-xs text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 mb-1">Nickname na Bandai TCG+ *</label>
+                                <input type="text" id="reg-nickname" required placeholder="Ex: Mugiwara_01" class="w-full bg-slate-950 border border-gold-500/40 rounded-lg p-2.5 text-xs text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 mb-1">Telefone / WhatsApp *</label>
+                                <input type="tel" id="reg-phone" required placeholder="(84) 99999-8888" class="w-full bg-slate-950 border border-gold-500/40 rounded-lg p-2.5 text-xs text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 mb-1">Observações do Jogador</label>
+                                <input type="text" id="reg-notes" placeholder="Ex: Preciso de deck emprestado" class="w-full bg-slate-950 border border-gold-500/40 rounded-lg p-2.5 text-xs text-gray-100 focus:border-gold-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="reg-submit-btn" class="w-full py-3.5 bg-gradient-to-r from-gold-500 via-amber-400 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-xl transition uppercase tracking-wider flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check-circle"></i> Confirmar Inscrição
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        const ADMIN_HASH = "b08492f2fc71fe89498064b63300bc8f1585ee58330026e6d5bfab588a44d8c7";
+        const fallbackSVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='1.5'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>";
+
+        const initialEvents = [
+            {
+                id: "ev-01",
+                title: "Pre-Release OP-09: The New Emperor",
+                category: "pre-release",
+                banner: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+                date: "15 de Novembro, 2026",
+                dateIso: "2026-11-15T14:00",
+                checkinTime: "13:30",
+                startTime: "14:15",
+                shopName: "Gamer's Realm",
+                shopLink: "https://maps.google.com",
+                price: "R$ 160,00",
+                priceNote: "Inclui 6 Boosters de OP-09 para Selado",
+                format: "Sealed Deck (OP-09)",
+                formatLink: "https://en.onepiece-cardgame.com/rules/",
+                judgeName: "Juiz Oficial Bruno",
+                judgeNotes: "Chegar com 15 minutos de antecedência.",
+                totalSlots: 32,
+                registeredPlayers: [],
+                prizeTiers: [
+                    {
+                        tierName: "1º Lugar (Campeão)",
+                        items: [
+                            { title: "Carta Promo Winner", img: "https://placehold.co/400x560/0b0f17/D4AF37?text=Winner+Promo", link: "https://en.onepiece-cardgame.com/" },
+                            { title: "Playmat Oficial de Campeão", img: "https://placehold.co/400x560/0b0f17/D4AF37?text=Official+Playmat", link: "https://en.onepiece-cardgame.com/" }
+                        ]
+                    },
+                    {
+                        tierName: "Top 4",
+                        items: [
+                            { title: "Carta Promo Top 4", img: "https://placehold.co/400x560/0b0f17/D4AF37?text=Top+4+Promo", link: "https://en.onepiece-cardgame.com/" }
+                        ]
+                    }
+                ],
+                raffles: [
+                    { title: "Deck Box Exclusivo Luffy", quantity: "1x Deck Box", img: "https://placehold.co/400x560/0b0f17/9333ea?text=Deck+Box", link: "https://en.onepiece-cardgame.com/" }
+                ]
+            }
+        ];
+
+        let events = JSON.parse(localStorage.getItem('op_events_data_v3')) || initialEvents;
+        let activeEventId = null;
+
+        function saveState() {
+            localStorage.setItem('op_events_data_v3', JSON.stringify(events));
+        }
+
+        /* --- AUTH DO JUIZ (SHA-256) --- */
+        async function sha256(text) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function requestAdminAccess() {
+            if (sessionStorage.getItem('op_admin_authenticated') === 'true') {
+                toggleAdminPanel(true);
+            } else {
+                document.getElementById('admin-password-input').value = '';
+                document.getElementById('admin-auth-error').classList.add('hidden');
+                document.getElementById('admin-auth-modal').classList.remove('hidden');
+            }
+        }
+
+        function closeAdminAuthModal() {
+            document.getElementById('admin-auth-modal').classList.add('hidden');
+        }
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const inputPass = document.getElementById('admin-password-input').value;
+            const hash = await sha256(inputPass);
+
+            if (hash === ADMIN_HASH) {
+                sessionStorage.setItem('op_admin_authenticated', 'true');
+                closeAdminAuthModal();
+                toggleAdminPanel(true);
+            } else {
+                const err = document.getElementById('admin-auth-error');
+                err.innerText = "Senha incorreta. Acesso negado!";
+                err.classList.remove('hidden');
+            }
+        }
+
+        function adminLogout() {
+            sessionStorage.removeItem('op_admin_authenticated');
+            toggleAdminPanel(false);
+            alert('Sessão do Juiz encerrada.');
+        }
+
+        function toggleAdminPanel(forceOpen) {
+            const panel = document.getElementById('admin-panel');
+            if (forceOpen === true) {
+                panel.classList.remove('hidden');
+                populateAdminEventsSelect();
+                populateEditEventsSelect();
+            } else if (forceOpen === false) {
+                panel.classList.add('hidden');
+            } else {
+                panel.classList.toggle('hidden');
+                if (!panel.classList.contains('hidden')) {
+                    populateAdminEventsSelect();
+                    populateEditEventsSelect();
+                }
+            }
+        }
+
+        /* --- RENDERIZAÇÃO DE EVENTOS --- */
+        function renderEvents() {
+            const grid = document.getElementById('events-grid');
+            grid.innerHTML = '';
+
+            events.forEach(ev => {
+                const remainingSlots = ev.totalSlots - ev.registeredPlayers.length;
+                
+                let categoryBadge = '';
+                if (ev.category === 'learn-to-play') {
+                    categoryBadge = `<span class="bg-emerald-950/90 text-emerald-300 border border-emerald-500/70 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase"><i class="fa-solid fa-graduation-cap mr-1"></i> Learn to Play</span>`;
+                } else if (ev.category === 'pre-release') {
+                    categoryBadge = `<span class="bg-purple-950/90 text-purple-300 border border-purple-500/70 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase"><i class="fa-solid fa-box-open mr-1"></i> Pre-Release</span>`;
+                } else {
+                    categoryBadge = `<span class="bg-amber-950/90 text-gold-400 border border-gold-500 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase"><i class="fa-solid fa-crown mr-1"></i> BIG EVENT</span>`;
+                }
+
+                const cardHTML = `
+                    <div class="rounded-2xl gold-border-card transition duration-300 overflow-hidden flex flex-col parallel-rare-effect">
+                        <div class="relative h-48 overflow-hidden bg-slate-950">
+                            <img src="${ev.banner}" alt="${ev.title}" class="w-full h-full object-cover" onerror="this.src='${fallbackSVG}'">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
+                            <div class="absolute top-3 left-3">${categoryBadge}</div>
+                            <div class="absolute bottom-2 right-3 bg-slate-950/95 backdrop-blur-md px-3 py-1 rounded-lg border border-gold-500/50">
+                                <span class="text-[10px] text-gray-400 block font-bold">Vagas</span>
+                                <span class="text-xs font-black ${remainingSlots > 0 ? 'text-emerald-400' : 'text-red-500'} font-mono">${remainingSlots} / ${ev.totalSlots}</span>
+                            </div>
+                        </div>
+
+                        <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                            <div>
+                                <h3 class="font-cinzel text-lg font-black text-gold-400 line-clamp-1 drop-shadow">${ev.title}</h3>
+                                <p class="text-xs text-gray-200 mt-1 font-semibold"><i class="fa-solid fa-store text-gold-400 mr-1"></i> ${ev.shopName}</p>
+                            </div>
+
+                            <div class="space-y-1.5 text-xs text-gray-200 border-t border-gray-800 pt-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400 font-bold"><i class="fa-solid fa-calendar-day mr-1 text-gold-400"></i> Data:</span>
+                                    <span class="font-bold text-gray-100">${ev.date}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400 font-bold"><i class="fa-solid fa-coins mr-1 text-gold-400"></i> Valor:</span>
+                                    <span class="font-bold text-emerald-400">${ev.price}</span>
+                                </div>
+                            </div>
+
+                            <button onclick="openEventModal('${ev.id}')" class="w-full py-3 bg-slate-900 hover:bg-gold-500 hover:text-slate-950 text-gold-400 font-black text-xs rounded-xl border border-gold-500/50 transition flex items-center justify-center gap-2 shadow-lg">
+                                <i class="fa-solid fa-eye"></i> Detalhes & Inscrição
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', cardHTML);
+            });
+
+            setupCountdownHero();
+        }
+
+        function setupCountdownHero() {
+            const bigEvent = events.find(e => e.category === 'big-event') || events[0];
+            if (!bigEvent) return;
+
+            document.getElementById('hero-bg-overlay').style.backgroundImage = `url('${bigEvent.banner}')`;
+            document.getElementById('hero-event-title').innerText = bigEvent.title;
+            document.getElementById('hero-event-desc').innerText = bigEvent.priceNote || bigEvent.judgeNotes;
+            document.getElementById('hero-event-shop').innerText = bigEvent.shopName;
+            document.getElementById('hero-event-date').innerText = bigEvent.date;
+            document.getElementById('hero-details-btn').onclick = () => openEventModal(bigEvent.id);
+
+            const targetDate = new Date(bigEvent.dateIso).getTime();
+
+            function updateTimer() {
+                const now = new Date().getTime();
+                const diff = targetDate - now;
+
+                if (diff <= 0) {
+                    document.getElementById('cd-days').innerText = "00";
+                    document.getElementById('cd-hours').innerText = "00";
+                    document.getElementById('cd-mins').innerText = "00";
+                    document.getElementById('cd-secs').innerText = "00";
+                    return;
+                }
+
+                document.getElementById('cd-days').innerText = String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(2, '0');
+                document.getElementById('cd-hours').innerText = String(Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+                document.getElementById('cd-mins').innerText = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+                document.getElementById('cd-secs').innerText = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+            }
+
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        }
+
+        function switchAdminTab(subtab) {
+            const playersTab = document.getElementById('admin-subtab-players');
+            const eventsTab = document.getElementById('admin-subtab-events');
+            const btnPlayers = document.getElementById('admin-tab-players-btn');
+            const btnEvents = document.getElementById('admin-tab-events-btn');
+
+            if (subtab === 'players') {
+                playersTab.classList.remove('hidden');
+                eventsTab.classList.add('hidden');
+                btnPlayers.className = "px-4 py-2 bg-gold-500 text-slate-950 text-xs font-black rounded-xl shadow";
+                btnEvents.className = "px-4 py-2 bg-slate-900 text-gray-300 hover:text-white text-xs font-bold rounded-xl border border-gray-800";
+            } else {
+                playersTab.classList.add('hidden');
+                eventsTab.classList.remove('hidden');
+                btnEvents.className = "px-4 py-2 bg-gold-500 text-slate-950 text-xs font-black rounded-xl shadow";
+                btnPlayers.className = "px-4 py-2 bg-slate-900 text-gray-300 hover:text-white text-xs font-bold rounded-xl border border-gray-800";
+            }
+        }
+
+        function populateAdminEventsSelect() {
+            const select = document.getElementById('admin-event-select');
+            select.innerHTML = '';
+            events.forEach(ev => {
+                select.insertAdjacentHTML('beforeend', `<option value="${ev.id}">${ev.title} (${ev.registeredPlayers.length}/${ev.totalSlots})</option>`);
+            });
+            loadAdminRegistrations();
+        }
+
+        function populateEditEventsSelect() {
+            const select = document.getElementById('edit-event-select');
+            select.innerHTML = `<option value="NEW">-- Criar Um Novo Evento --</option>`;
+            events.forEach(ev => {
+                select.insertAdjacentHTML('beforeend', `<option value="${ev.id}">${ev.title}</option>`);
+            });
+        }
+
+        function onSelectEventToEdit() {
+            const val = document.getElementById('edit-event-select').value;
+            const deleteBtn = document.getElementById('delete-event-btn');
+
+            if (val === 'NEW') {
+                resetEventForm();
+                deleteBtn.classList.add('hidden');
+            } else {
+                const ev = events.find(e => e.id === val);
+                if (ev) {
+                    fillFormForEdit(ev);
+                    deleteBtn.classList.remove('hidden');
+                }
+            }
+        }
+
+        function fillFormForEdit(ev) {
+            document.getElementById('edit-event-id').value = ev.id;
+            document.getElementById('event-form-title').innerText = `Editando Evento: ${ev.title}`;
+            document.getElementById('form-ev-title').value = ev.title;
+            document.getElementById('form-ev-category').value = ev.category;
+            document.getElementById('form-ev-slots').value = ev.totalSlots;
+            document.getElementById('form-ev-shop').value = ev.shopName;
+            document.getElementById('form-ev-shoplink').value = ev.shopLink;
+            document.getElementById('form-ev-date').value = ev.date;
+            document.getElementById('form-ev-dateiso').value = ev.dateIso;
+            document.getElementById('form-ev-checkin').value = ev.checkinTime;
+            document.getElementById('form-ev-start').value = ev.startTime;
+            document.getElementById('form-ev-price').value = ev.price;
+            document.getElementById('form-ev-pricenote').value = ev.priceNote || '';
+            document.getElementById('form-ev-format').value = ev.format;
+            document.getElementById('form-ev-formatlink').value = ev.formatLink || '';
+            document.getElementById('form-ev-banner').value = ev.banner;
+            document.getElementById('form-ev-judgename').value = ev.judgeName;
+            document.getElementById('form-ev-judgenotes').value = ev.judgeNotes || '';
+
+            const tiersContainer = document.getElementById('prize-tiers-container');
+            tiersContainer.innerHTML = '';
+            if (ev.prizeTiers && ev.prizeTiers.length > 0) {
+                ev.prizeTiers.forEach(t => addPrizeTierGroup(t.tierName, t.items));
+            } else {
+                addPrizeTierGroup();
+            }
+
+            const raffleContainer = document.getElementById('raffles-input-container');
+            raffleContainer.innerHTML = '';
+            if (ev.raffles && ev.raffles.length > 0) {
+                ev.raffles.forEach(r => addRaffleInputRow(r.title, r.quantity, r.img, r.link));
+            }
+        }
+
+        function addPrizeTierGroup(tierName = '', items = []) {
+            const container = document.getElementById('prize-tiers-container');
+            const tierId = `tier-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`;
+
+            const tierHTML = `
+                <div id="${tierId}" class="tier-group p-3.5 bg-slate-900 border border-gold-500/40 rounded-xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <input type="text" class="tier-name bg-slate-950 border border-gray-700 rounded p-2 text-xs text-gold-400 font-bold w-full max-w-xs" placeholder="Nome do Tier (Ex: 1º Lugar / Top 4)" value="${tierName}">
+                        <button type="button" onclick="document.getElementById('${tierId}').remove()" class="text-red-400 hover:text-red-300 text-xs font-bold">
+                            <i class="fa-solid fa-trash-can"></i> Excluir Tier
+                        </button>
+                    </div>
+
+                    <div class="space-y-2 border-t border-gray-800 pt-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-gray-400 uppercase">Itens de Prêmio deste Tier:</span>
+                            <button type="button" onclick="addSubItemToTier('${tierId}')" class="px-2 py-0.5 bg-gold-500/20 border border-gold-500/50 hover:bg-gold-500/40 text-gold-300 text-[10px] font-bold rounded">
+                                + Adicionar Prêmio a este Tier
+                            </button>
+                        </div>
+                        <div class="tier-items-container space-y-2">
+                            <!-- Dynamic Sub-Items -->
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', tierHTML);
+
+            if (items && items.length > 0) {
+                items.forEach(it => addSubItemToTier(tierId, it.title, it.img, it.link));
+            } else {
+                addSubItemToTier(tierId);
+            }
+        }
+
+        function addSubItemToTier(tierId, title = '', img = '', link = '') {
+            const itemsContainer = document.querySelector(`#${tierId} .tier-items-container`);
+            if (!itemsContainer) return;
+
+            const itemId = `subitem-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`;
+            const itemHTML = `
+                <div id="${itemId}" class="p-2.5 bg-slate-950 border border-gray-800 rounded-lg space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] text-gray-400 font-semibold">Sub-Item de Prêmio</span>
+                        <button type="button" onclick="document.getElementById('${itemId}').remove()" class="text-red-400 hover:text-red-300 text-[10px]">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                        <input type="text" class="sub-title bg-slate-900 border border-gray-800 rounded p-1.5 text-gray-100" placeholder="Nome do Prêmio (Ex: Playmat / Promo Card)" value="${title}">
+                        <input type="url" class="sub-img bg-slate-900 border border-gray-800 rounded p-1.5 text-gray-100" placeholder="URL da Imagem PNG/Foto" value="${img}">
+                        <input type="url" class="sub-link bg-slate-900 border border-gray-800 rounded p-1.5 text-gray-100" placeholder="URL Link Explicativo" value="${link}">
+                    </div>
+                </div>
+            `;
+            itemsContainer.insertAdjacentHTML('beforeend', itemHTML);
+        }
+
+        function addRaffleInputRow(title = '', qty = '', img = '', link = '') {
+            const container = document.getElementById('raffles-input-container');
+            const rowId = `raffle-row-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`;
+
+            const rowHTML = `
+                <div id="${rowId}" class="p-3 bg-slate-900 border border-gray-800 rounded-lg space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-gray-400">Item de Sorteio</span>
+                        <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-red-400 hover:text-red-300 text-xs font-bold">
+                            <i class="fa-solid fa-trash-can"></i> Remover
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <input type="text" class="raffle-title bg-slate-950 border border-gray-800 rounded p-2 text-gray-100" placeholder="Título (Ex: Playmat Exclusivo Luffy)" value="${title}">
+                        <input type="text" class="raffle-qty bg-slate-950 border border-gray-800 rounded p-2 text-gray-100" placeholder="Quantidade (Ex: 1x Playmat)" value="${qty}">
+                        <input type="url" class="raffle-img bg-slate-950 border border-gray-800 rounded p-2 text-gray-100" placeholder="URL Imagem PNG" value="${img}">
+                        <input type="url" class="raffle-link bg-slate-950 border border-gray-800 rounded p-2 text-gray-100" placeholder="URL Link Explicativo" value="${link}">
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', rowHTML);
+        }
+
+        function resetEventForm() {
+            document.getElementById('edit-event-id').value = '';
+            document.getElementById('event-form-title').innerText = 'Cadastrar Novo Evento';
+            document.getElementById('edit-event-select').value = 'NEW';
+            document.getElementById('delete-event-btn').classList.add('hidden');
+
+            document.getElementById('form-ev-title').value = '';
+            document.getElementById('form-ev-shop').value = '';
+            document.getElementById('form-ev-shoplink').value = '';
+            document.getElementById('form-ev-date').value = '';
+            document.getElementById('form-ev-dateiso').value = '';
+            document.getElementById('form-ev-checkin').value = '';
+            document.getElementById('form-ev-start').value = '';
+            document.getElementById('form-ev-price').value = '';
+            document.getElementById('form-ev-pricenote').value = '';
+            document.getElementById('form-ev-format').value = '';
+            document.getElementById('form-ev-formatlink').value = '';
+            document.getElementById('form-ev-banner').value = '';
+            document.getElementById('form-ev-judgename').value = '';
+            document.getElementById('form-ev-judgenotes').value = '';
+
+            document.getElementById('prize-tiers-container').innerHTML = '';
+            addPrizeTierGroup();
+
+            document.getElementById('raffles-input-container').innerHTML = '';
+        }
+
+        function handleSaveEvent(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-event-id').value || `ev-${Date.now()}`;
+
+            const tierElements = document.querySelectorAll('#prize-tiers-container .tier-group');
+            const prizeTiersArr = [];
+
+            tierElements.forEach(tierEl => {
+                const tierName = tierEl.querySelector('.tier-name').value.trim() || 'Premiação';
+                const subItemElements = tierEl.querySelectorAll('.tier-items-container > div');
+                const itemsArr = [];
+
+                subItemElements.forEach(itemEl => {
+                    const title = itemEl.querySelector('.sub-title').value.trim();
+                    const img = itemEl.querySelector('.sub-img').value.trim();
+                    const link = itemEl.querySelector('.sub-link').value.trim();
+                    if (title) {
+                        itemsArr.push({ title, img: img || fallbackSVG, link: link || '#' });
+                    }
+                });
+
+                if (itemsArr.length > 0) {
+                    prizeTiersArr.push({ tierName, items: itemsArr });
+                }
+            });
+
+            const raffleRows = document.querySelectorAll('#raffles-input-container > div');
+            const rafflesArr = [];
+            raffleRows.forEach(row => {
+                const title = row.querySelector('.raffle-title').value.trim();
+                const qty = row.querySelector('.raffle-qty').value.trim();
+                const img = row.querySelector('.raffle-img').value.trim();
+                const link = row.querySelector('.raffle-link').value.trim();
+                if (title) {
+                    rafflesArr.push({ title, quantity: qty || "1x Item", img: img || fallbackSVG, link: link || "#" });
+                }
+            });
+
+            const newEv = {
+                id: id,
+                title: document.getElementById('form-ev-title').value,
+                category: document.getElementById('form-ev-category').value,
+                totalSlots: parseInt(document.getElementById('form-ev-slots').value),
+                shopName: document.getElementById('form-ev-shop').value,
+                shopLink: document.getElementById('form-ev-shoplink').value,
+                date: document.getElementById('form-ev-date').value,
+                dateIso: document.getElementById('form-ev-dateiso').value,
+                checkinTime: document.getElementById('form-ev-checkin').value,
+                startTime: document.getElementById('form-ev-start').value,
+                price: document.getElementById('form-ev-price').value,
+                priceNote: document.getElementById('form-ev-pricenote').value,
+                format: document.getElementById('form-ev-format').value,
+                formatLink: document.getElementById('form-ev-formatlink').value,
+                banner: document.getElementById('form-ev-banner').value,
+                judgeName: document.getElementById('form-ev-judgename').value,
+                judgeNotes: document.getElementById('form-ev-judgenotes').value,
+                registeredPlayers: [],
+                prizeTiers: prizeTiersArr,
+                raffles: rafflesArr
+            };
+
+            const existingIndex = events.findIndex(item => item.id === id);
+            if (existingIndex >= 0) {
+                newEv.registeredPlayers = events[existingIndex].registeredPlayers;
+                events[existingIndex] = newEv;
+            } else {
+                events.push(newEv);
+            }
+
+            saveState();
+            renderEvents();
+            populateAdminEventsSelect();
+            populateEditEventsSelect();
+            resetEventForm();
+            switchAdminTab('players');
+            alert('Evento salvo com sucesso!');
+        }
+
+        function handleDeleteCurrentEvent() {
+            const id = document.getElementById('edit-event-id').value;
+            if (!id) return;
+
+            const ev = events.find(e => e.id === id);
+            if (!ev) return;
+
+            if (confirm(`Tem certeza que deseja excluir o evento "${ev.title}"? Todas as inscrições (${ev.registeredPlayers.length} jogadores) serão removidas.`)) {
+                events = events.filter(e => e.id !== id);
+                saveState();
+                renderEvents();
+                populateAdminEventsSelect();
+                populateEditEventsSelect();
+                resetEventForm();
+                alert('Evento excluído com sucesso!');
+            }
+        }
+
+        function loadAdminRegistrations() {
+            const selectEl = document.getElementById('admin-event-select');
+            if (!selectEl.value) return;
+
+            const ev = events.find(e => e.id === selectEl.value);
+            if (!ev) return;
+
+            document.getElementById('admin-registered-count').innerText = `${ev.registeredPlayers.length} / ${ev.totalSlots}`;
+
+            const list = document.getElementById('admin-players-list');
+            list.innerHTML = '';
+
+            if (ev.registeredPlayers.length === 0) {
+                list.innerHTML = `<div class="p-4 text-center text-xs text-gray-400">Nenhum jogador inscrito neste evento ainda.</div>`;
+                return;
+            }
+
+            ev.registeredPlayers.forEach((p, index) => {
+                list.insertAdjacentHTML('beforeend', `
+                    <div class="p-3 flex items-center justify-between text-xs hover:bg-slate-950 transition">
+                        <div>
+                            <span class="font-bold text-gray-100">${index + 1}. ${p.name}</span>
+                            <span class="text-gold-400 font-mono ml-2">(${p.nickname})</span>
+                            <p class="text-[10px] text-gray-400"><i class="fa-solid fa-phone mr-1"></i> ${p.phone} ${p.notes ? '• Obs: ' + p.notes : ''}</p>
+                        </div>
+                        <button onclick="removeRegistration('${ev.id}', '${p.nickname}')" class="px-2.5 py-1 bg-red-950 hover:bg-red-800 text-red-300 border border-red-800/60 rounded-lg text-[11px] font-bold flex items-center gap-1 transition">
+                            <i class="fa-solid fa-trash-can"></i> Remover
+                        </button>
+                    </div>
+                `);
+            });
+        }
+
+        function removeRegistration(eventId, nickname) {
+            const ev = events.find(e => e.id === eventId);
+            if (!ev) return;
+
+            ev.registeredPlayers = ev.registeredPlayers.filter(p => p.nickname.toLowerCase() !== nickname.toLowerCase());
+
+            saveState();
+            renderEvents();
+            populateAdminEventsSelect();
+        }
+
+        function exportRegistrationsTXT() {
+            const eventId = document.getElementById('admin-event-select').value;
+            const ev = events.find(e => e.id === eventId);
+            if (!ev) return;
+
+            let content = `=================================================\n`;
+            content += `EVENTO: ${ev.title}\n`;
+            content += `LOJA: ${ev.shopName} | DATA: ${ev.date}\n`;
+            content += `INSCRITOS: ${ev.registeredPlayers.length}/${ev.totalSlots}\n`;
+            content += `=================================================\n\n`;
+
+            ev.registeredPlayers.forEach((p, i) => {
+                content += `${i + 1}. Nome: ${p.name} | Nickname Bandai: ${p.nickname} | Tel: ${p.phone} | Obs: ${p.notes || 'N/A'}\n`;
+            });
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Inscritos_${ev.title.replace(/[^a-zA-Z0-9]/g, '_')}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function openGoogleSheetConfig() {
+            document.getElementById('sheets-url-input').value = localStorage.getItem('op_sheets_url') || '';
+            document.getElementById('sheets-modal').classList.remove('hidden');
+        }
+
+        function closeSheetsModal() {
+            document.getElementById('sheets-modal').classList.add('hidden');
+        }
+
+        function saveSheetsURL() {
+            const url = document.getElementById('sheets-url-input').value.trim();
+            localStorage.setItem('op_sheets_url', url);
+            closeSheetsModal();
+            alert('URL do Google Sheets salva com sucesso!');
+        }
+
+        function openEventModal(eventId) {
+            const ev = events.find(e => e.id === eventId);
+            if (!ev) return;
+
+            activeEventId = eventId;
+
+            document.getElementById('modal-banner').src = ev.banner;
+            document.getElementById('modal-title').innerText = ev.title;
+
+            const remaining = ev.totalSlots - ev.registeredPlayers.length;
+            document.getElementById('modal-slots').innerText = `${remaining} / ${ev.totalSlots}`;
+            document.getElementById('modal-date').innerText = ev.date;
+            document.getElementById('modal-checkin').innerText = ev.checkinTime;
+            document.getElementById('modal-start').innerText = ev.startTime;
+            document.getElementById('modal-shop-name').innerText = ev.shopName;
+            document.getElementById('modal-shop-link').href = ev.shopLink;
+            document.getElementById('modal-price').innerText = ev.price;
+            document.getElementById('modal-price-note').innerText = ev.priceNote || '';
+            document.getElementById('modal-format').innerText = ev.format;
+            document.getElementById('modal-format-link').href = ev.formatLink || '#';
+            document.getElementById('modal-judge-name').innerText = ev.judgeName;
+            document.getElementById('modal-judge-notes').innerText = `"${ev.judgeNotes}"`;
+
+            const prizesList = document.getElementById('modal-prizes-list');
+            prizesList.innerHTML = '';
+            if (ev.prizeTiers && ev.prizeTiers.length > 0) {
+                ev.prizeTiers.forEach(tier => {
+                    let itemsHTML = '';
+                    tier.items.forEach(it => {
+                        itemsHTML += `
+                            <div class="bg-slate-950 border border-gold-500/40 p-3 rounded-xl flex items-center gap-3">
+                                <img src="${it.img}" class="w-12 h-16 object-cover rounded border border-gold-500/40 shadow" alt="Prêmio" onerror="this.src='${fallbackSVG}'">
+                                <div class="text-xs space-y-1">
+                                    <p class="font-bold text-gray-100">${it.title}</p>
+                                    ${it.link && it.link !== '#' ? `<a href="${it.link}" target="_blank" class="text-gold-400 hover:underline inline-flex items-center gap-1 text-[10px] font-bold"><i class="fa-solid fa-external-link"></i> Ver Foto / Detalhes</a>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    prizesList.insertAdjacentHTML('beforeend', `
+                        <div class="bg-slate-950/90 border border-gold-500/40 p-4 rounded-xl space-y-2">
+                            <h4 class="text-xs font-bold text-gold-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-trophy"></i> ${tier.tierName}
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                ${itemsHTML}
+                            </div>
+                        </div>
+                    `);
+                });
+            } else {
+                prizesList.innerHTML = `<p class="text-xs text-gray-400">Premiações em breve.</p>`;
+            }
+
+            const rafflesWrapper = document.getElementById('modal-raffles-wrapper');
+            const rafflesList = document.getElementById('modal-raffles-list');
+            rafflesList.innerHTML = '';
+
+            if (ev.raffles && ev.raffles.length > 0) {
+                rafflesWrapper.classList.remove('hidden');
+                ev.raffles.forEach(r => {
+                    rafflesList.insertAdjacentHTML('beforeend', `
+                        <div class="bg-slate-950/90 border border-purple-500/40 p-3 rounded-xl flex items-center gap-3">
+                            <img src="${r.img}" class="w-12 h-16 object-cover rounded border border-purple-500/40 shadow" alt="Sorteio" onerror="this.src='${fallbackSVG}'">
+                            <div class="text-xs space-y-1">
+                                <p class="font-bold text-purple-300">${r.title}</p>
+                                <p class="text-gray-300 text-[11px] leading-tight font-semibold">${r.quantity}</p>
+                                ${r.link && r.link !== '#' ? `<a href="${r.link}" target="_blank" class="text-purple-400 hover:underline block text-[10px] font-bold"><i class="fa-solid fa-external-link"></i> Ver Detalhes</a>` : ''}
+                            </div>
+                        </div>
+                    `);
+                });
+            } else {
+                rafflesWrapper.classList.add('hidden');
+            }
+
+            document.getElementById('event-modal').classList.remove('hidden');
+        }
+
+        function closeEventModal() {
+            document.getElementById('event-modal').classList.add('hidden');
+            activeEventId = null;
+        }
+
+        /* --- INSCRIÇÃO COM INTEGRAÇÃO GOOGLE SHEETS --- */
+        async function handleRegistration(e) {
+            e.preventDefault();
+            if (!activeEventId) return;
+
+            const ev = events.find(e => e.id === activeEventId);
+            if (!ev) return;
+
+            const name = document.getElementById('reg-name').value.trim();
+            const nickname = document.getElementById('reg-nickname').value.trim();
+            const phone = document.getElementById('reg-phone').value.trim();
+            const notes = document.getElementById('reg-notes').value.trim();
+
+            const exists = ev.registeredPlayers.some(p => p.nickname.toLowerCase() === nickname.toLowerCase());
+            if (exists) {
+                alert(`O Nickname "${nickname}" já está inscrito neste evento!`);
+                return;
+            }
+
+            if (ev.registeredPlayers.length >= ev.totalSlots) {
+                alert('Infelizmente as vagas para este evento já se esgotaram!');
+                return;
+            }
+
+            const submitBtn = document.getElementById('reg-submit-btn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Enviando inscrição...`;
+
+            // Envio para Google Sheets se houver URL configurada
+            const sheetsUrl = localStorage.getItem('op_sheets_url');
+            if (sheetsUrl) {
+                try {
+                    await fetch(sheetsUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            eventTitle: ev.title,
+                            name: name,
+                            nickname: nickname,
+                            phone: phone,
+                            notes: notes
+                        })
+                    });
+                } catch (err) {
+                    console.warn("Aviso: Falha ao enviar para o Google Sheets:", err);
+                }
+            }
+
+            // Salva no armazenamento local da aplicação
+            ev.registeredPlayers.push({ name, nickname, phone, notes });
+            saveState();
+            renderEvents();
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+
+            alert(`Parabéns ${name}! Sua vaga foi confirmada com sucesso!`);
+            document.getElementById('reg-form').reset();
+            closeEventModal();
+        }
+
+        function switchTab(tab) {
+            const calTab = document.getElementById('tab-calendar');
+            const bountyTab = document.getElementById('tab-bounty');
+            if (tab === 'calendar') {
+                calTab.classList.remove('hidden');
+                bountyTab.classList.add('hidden');
+            } else {
+                calTab.classList.add('hidden');
+                bountyTab.classList.remove('hidden');
+            }
+        }
+
+        window.onload = function() {
+            renderEvents();
+            resetEventForm();
+        };
+    </script>
+</body>
+</html>
